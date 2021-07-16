@@ -56,9 +56,9 @@ const getProxyConfig = () => {
 module.exports = {
   parallel: false,
   devServer: {
-    disableHostCheck: true,
+    disableHostCheck: false,
     port: 9102,
-    open: false,
+    open: true,
     overlay: {
       warnings: false,
       errors: true

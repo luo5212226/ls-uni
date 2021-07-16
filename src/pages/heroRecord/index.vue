@@ -7,6 +7,7 @@
         <movable-view direction="vertical" style="width: 560rpx;height:auto;">
           <view class="peopleBox">
             <view v-for="(item, index) in heroList" :key="(+new Date()) + index" class="people">
+              <view class="close" @tap="deleteFn(item, index)"><my-svg type="delete" class="close-svg"></my-svg></view>
               <my-svg :type="'people'+(index+1)" class="addPeople"></my-svg>
               <text class="name">{{item.name}}</text>
             </view>
@@ -18,7 +19,6 @@
       <!--<my-svg type="addPeople1" class="addPeople"></my-svg>-->
       <view class="operateBox">
         <text class="title" @tap="addFn">添加英雄</text>
-        <text class="title">删除英雄</text>
       </view>
     </view>
     <uni-popup ref="popupCenter" type="center" :animation="false">
@@ -60,6 +60,9 @@ export default {
     });
   },
   methods: {
+    deleteFn(item, index) {
+      this.$store.dispatch('deletePlayer', item);
+    },
     resetFn() {
       this.changeValue = '';
     },
@@ -68,7 +71,7 @@ export default {
       if (!this.changeValue) {
         return;
       }
-      this.$store.dispatch('addPlayer', { name: this.changeValue });
+      this.$store.dispatch('addPlayer', { name: this.changeValue, hasChecked: false, startRecord: 4000, addRecord: 0, endRecord: 0 });
       this.changeValue = '';
       this.$refs.popupCenter.close();
       console.log(this.$store.state.players.players);
@@ -148,7 +151,18 @@ export default {
           flex-direction: column;
           align-items: center;
           justify-content: space-around;
-          flex: 1 1 auto;
+          position: relative;
+          .close {
+            position: absolute;
+            width: 32rpx;
+            height: 32rpx;
+            right: 0;
+            top: 0;
+            .close-svg {
+              width: 32rpx;
+              height: 32rpx;
+            }
+          }
           .name {
             font-size: 14px;
           }
@@ -158,7 +172,7 @@ export default {
     .operateBox {
       margin-top: 60rpx;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       padding: 0 120rpx;
       .title {

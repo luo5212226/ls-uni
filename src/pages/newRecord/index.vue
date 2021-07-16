@@ -50,61 +50,27 @@ export default {
     return {
       height: '',
       checkId: [],
-      peopleList: [
-        {
-          hasChecked: false,
-          name: 'player1'
-        },
-        {
-          hasChecked: false,
-          name: 'player2'
-        },
-        {
-          hasChecked: false,
-          name: 'player3'
-        },
-        {
-          hasChecked: false,
-          name: 'player4'
-        },
-        {
-          hasChecked: false,
-          name: 'player5'
-        },
-        {
-          hasChecked: false,
-          name: 'player6'
-        },
-        {
-          hasChecked: false,
-          name: 'player7'
-        },
-        {
-          hasChecked: false,
-          name: 'player8'
-        },
-        {
-          hasChecked: false,
-          name: 'player9'
-        }
-      ],
+      peopleList: [],
       playerList: [],
       startRecord: 4000
     }
   },
+  computed: {
+    playersList() {
+      return this.$store.state.players.players;
+    }
+  },
   watch: {
-    '$store.state.players.players'(arr) {
-      var temp = [];
-      arr.forEach((item) => {
-        if (!this.peopleList.find(people => people.name === item.name) {
-          temp.push({
-            name: item.name,
-            hasChecked: false,
-          })
-        } else {
-          this.peopleList.splice();
+    playersList: {
+      immediate: true,
+      handler(arr) {
+        this.peopleList = arr.map(item => {
+        return {
+          name: item.name,
+          hasChecked: false,
         }
       });
+      }
     }
   },
   mounted() {

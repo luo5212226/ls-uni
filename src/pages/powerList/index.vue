@@ -1,6 +1,6 @@
 <template>
   <view class="content" :style="{'min-height': height + 'px'}">
-    <view>战力排名</view>
+    <view>暂无</view>
   </view>
 </template>
 <script>

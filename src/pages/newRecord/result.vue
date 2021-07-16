@@ -5,7 +5,7 @@
     </view>
     <view style="margin-top: 20px;font-size: 14px;">
       <view v-if="infoList.length" class="listTitle">
-        <text class="title first">名字</text>
+        <text class="title first">英雄名</text>
         <text class="title">累计</text>
         <text class="title">剩余</text>
         <text class="title">结算</text>
@@ -13,7 +13,7 @@
       <view v-for="(info, index) in infoList" :key="index" class="infoList">
         <view class="item-left">
           <my-svg :type="'people'+(index+1)" class="player"></my-svg>
-          <text>{{ info.name }}</text>
+          <text class="player-name">{{ info.name }}</text>
         </view>
         <text class="item-percent record">{{ info.startRecord + info.addRecord }}</text>
         <text class="item-percent record">{{ info.endRecord }}</text>
@@ -90,7 +90,7 @@ export default {
         .player {
           height: 48rpx;
           width: 48rpx;
-          margin-right: 10rpx;
+          margin-right: 20rpx;
         }
       }
       .record {
