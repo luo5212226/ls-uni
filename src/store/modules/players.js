@@ -1,6 +1,7 @@
 export default {
   state: {
-    players: []
+    players: [],
+    record: []
   },
   mutations: {
     ADD_PLAYER (state, player) {
@@ -13,6 +14,9 @@ export default {
     },
     DELETE_PLAYER (state, player) {
       state.players.splice(state.players.findIndex(item => item.name === player.name), 1);
+    },
+    MODIFY_RECORD (state, record) {
+      state.record = record;
     }
   },
   actions: {
@@ -21,9 +25,13 @@ export default {
     },
     deletePlayer ({ commit }, player) {
       commit('DELETE_PLAYER', player);
+    },
+    modifyRecord ({ commit }, record) {
+      commit('MODIFY_RECORD', record);
     }
   },
   getters: {
-    players: state => state.players
+    players: state => state.players,
+    record: state => state.record
   }
 };

@@ -1,5 +1,5 @@
 <template>
-  <view class="content" :style="{'min-height': height + 'px'}">
+  <view class="content" :style="pageHeight">
     <view class="newTitle">
       <text class="title">
         当前人数: {{ playerList.length }}
@@ -9,18 +9,17 @@
           添加
           <my-svg type="addPeople" class="addPeople"></my-svg>
         </view>
-        <view  class="title title-right" @tap="endFn">结算<my-svg type="close" class="addPeople"></my-svg></view>
+        <view class="title title-right" @tap="endFn">结算<my-svg type="close" class="addPeople"></my-svg></view>
       </view>
     </view>
     <view class="recordBox">
       <view class="recordInfo" v-for="(item, index) in playerList" :key="index">
-        <my-svg :type="'people'+(index+1)" class="player"></my-svg>
+        <my-svg :type="`people${index+1}`" class="player"></my-svg>
         <view class="playerInfo">
           <view class="info">名字：<text>{{ item.name }}</text></view>
-          <view class="info">初始积分：<view @tap="subFn('start', index)" style="display: inline-block;"><my-svg type="cut" style="font-size: 16px;"></my-svg></view><input type="number" :value="item.startRecord" class="setRecord" @input="inputFn('start', index, ...arguments)" /><view @tap="addFn('start', index)" style="display: inline-block;"><my-svg type="add" style="font-size: 16px;"></my-svg></view></view>
-          <view class="info">累加积分：<view @tap="subFn('add', index)" style="display: inline-block;"><my-svg type="cut" style="font-size: 16px;"></my-svg></view><input type="number" :value="item.addRecord" class="setRecord" @input="inputFn('add', index, ...arguments)" /><view @tap="addFn('add', index)" style="display: inline-block;"><my-svg type="add" style="font-size: 16px;"></my-svg></view></view>
-          <!-- -->
-          <view class="info">剩余积分：<view @tap="subFn('end', index)" style="display: inline-block;"><my-svg type="cut" class="btn" style="font-size: 16px;"></my-svg></view><input type="number" :value="item.endRecord" class="setRecord" @input="inputFn('end', index, ...arguments)" /><view @tap="addFn('end', index)" style="display: inline-block;"><my-svg type="add" style="font-size: 16px;"></my-svg></view></view>
+          <view class="info">初始积分：<view @tap="subFn('start', item)" style="display: inline-block;"><my-svg type="cut" style="font-size: 16px;"></my-svg></view><input type="number" :value="item.startRecord" class="setRecord" @input="inputFn('start', item, $event)" /><view @tap="addFn('start', item)" style="display: inline-block;"><my-svg type="add" style="font-size: 16px;"></my-svg></view></view>
+          <view class="info">累加积分：<view @tap="subFn('add', item)" style="display: inline-block;"><my-svg type="cut" style="font-size: 16px;"></my-svg></view><input type="number" :value="item.addRecord" class="setRecord" @input="inputFn('add', item, $event)" /><view @tap="addFn('add', item)" style="display: inline-block;"><my-svg type="add" style="font-size: 16px;"></my-svg></view></view>
+          <view class="info">剩余积分：<view @tap="subFn('end', item)" style="display: inline-block;"><my-svg type="cut" class="btn" style="font-size: 16px;"></my-svg></view><input type="number" :value="item.endRecord" class="setRecord" @input="inputFn('end', item, $event)" /><view @tap="addFn('end', item)" style="display: inline-block;"><my-svg type="add" style="font-size: 16px;"></my-svg></view></view>
           <view class="info">结算积分：<text class="record">{{ item.endRecord - (item.startRecord + item.addRecord) }}</text></view>
         </view>
       </view>
@@ -32,7 +31,7 @@
             <text @tap="popSure">确定</text>
           </view>
           <view class="newAddpeopleBox">
-            <scroll-view :scroll-top="0" :scroll-y="true" :style="{height:height/2 + 'px'}">
+            <scroll-view :scroll-top="0" :scroll-y="true" :style="popHeight">
               <view class="scroll-view-item peopleView" @tap="hasCheckedType(item,index)" v-for="(item, index) in peopleList" :key="index">
                 <my-svg type="danxuan" class="danxuan" v-if="item.hasChecked === false"></my-svg>
                 <my-svg type="xuanzhong" class="xuanzhong" v-else></my-svg>
@@ -51,13 +50,27 @@ export default {
       height: '',
       checkId: [],
       peopleList: [],
-      playerList: [],
       startRecord: 4000
     }
   },
   computed: {
     playersList() {
       return this.$store.state.players.players;
+    },
+    playerList() {
+      return this.peopleList.filter((item) => {
+        return item.hasChecked;
+      });
+    },
+    pageHeight() {
+      return {
+        'min-height': this.height + 'px'
+      }
+    },
+    popHeight() {
+      return {
+        height: this.height/2 + 'px'
+      }
     }
   },
   watch: {
@@ -65,16 +78,31 @@ export default {
       immediate: true,
       handler(arr) {
         this.peopleList = arr.map(item => {
-        return {
-          name: item.name,
-          hasChecked: false,
-        }
-      });
+          return {
+            name: item.name,
+            hasChecked: false,
+            startRecord: 4000,
+            addRecord: 0,
+            endRecord: 0
+          }
+        });
+      }
+    },
+    playerList: {
+      handler(arr) {
+        this.$store.dispatch('modifyRecord', [...arr]);
       }
     }
   },
   mounted() {
     var _this = this;
+    var record = this.$store.state.players.record;
+    record.forEach(item => {
+      var index = _this.peopleList.findIndex((player) => player.name === item.name);
+      if (index > -1) {
+        _this.peopleList.splice(index, 1, item);
+      }
+    });
     // _this.height = getApp().globalData.windowHeight;
     uni.getSystemInfo({
       success: function (res) {
@@ -84,17 +112,18 @@ export default {
     this.getChecked();
   },
   methods: {
-    inputFn(type, index, e) {
+    inputFn(type, item, e) {
       var value = 0;
+      var index = this.peopleList.findIndex(people => people.name === item.name);
       if (/^[1-9]\d*$/.test(e.target.value)) {
         value = +e.target.value;
       }
       if (type === 'start') {
-        this.$set(this.playerList[index], 'startRecord', value);
+        this.$set(this.peopleList[index], 'startRecord', value);
       } else if (type === 'add') {
-        this.$set(this.playerList[index], 'addRecord', value);
+        this.$set(this.peopleList[index], 'addRecord', value);
       } else {
-        this.$set(this.playerList[index], 'endRecord', value);
+        this.$set(this.peopleList[index], 'endRecord', value);
       }
     },
     endFn() {
@@ -105,22 +134,24 @@ export default {
         url: '/pages/newRecord/result?list=' + JSON.stringify({ data: this.playerList })
       })
     },
-    addFn(type, index) {
+    addFn(type, item) {
+      var index = this.peopleList.findIndex(people => people.name === item.name);
       if (type === 'start') {
-        this.$set(this.playerList[index], 'startRecord', this.playerList[index].startRecord + 1000);
+        this.$set(this.peopleList[index], 'startRecord', this.peopleList[index].startRecord + 1000);
       } else if (type === 'add') {
-        this.$set(this.playerList[index], 'addRecord', this.playerList[index].addRecord + 1000);
+        this.$set(this.peopleList[index], 'addRecord', this.peopleList[index].addRecord + 1000);
       } else {
-        this.$set(this.playerList[index], 'endRecord', this.playerList[index].endRecord + 1000);
+        this.$set(this.peopleList[index], 'endRecord', this.peopleList[index].endRecord + 1000);
       }
     },
-    subFn(type, index) {
+    subFn(type, item) {
+      var index = this.peopleList.findIndex(people => people.name === item.name);
       if (type === 'start') {
-        this.$set(this.playerList[index], 'startRecord', this.playerList[index].startRecord ? this.playerList[index].startRecord - 1000 : 0);
+        this.$set(this.peopleList[index], 'startRecord', this.peopleList[index].startRecord ? this.peopleList[index].startRecord - 1000 : 0);
       } else if (type === 'add') {
-        this.$set(this.playerList[index], 'addRecord', this.playerList[index].addRecord ? this.playerList[index].addRecord - 1000 : 0);
+        this.$set(this.peopleList[index], 'addRecord', this.peopleList[index].addRecord ? this.peopleList[index].addRecord - 1000 : 0);
       } else {
-        this.$set(this.playerList[index], 'endRecord', this.playerList[index].endRecord ? this.playerList[index].endRecord - 1000 : 0);
+        this.$set(this.peopleList[index], 'endRecord', this.peopleList[index].endRecord ? this.peopleList[index].endRecord - 1000 : 0);
       }
     },
     getChecked() {
@@ -139,23 +170,24 @@ export default {
       this.$set(this.peopleList[index], 'hasChecked', !item.hasChecked)
     },
     popSure() {
+      var _this = this;
+      // this.playerList = this.peopleList.filter((item, index) => {
+      //   return item.hasChecked;
+      // }).map((item) => {
+      //   return {
+      //     ...item,
+      //     startRecord: 4000,
+      //     addRecord: 0,
+      //     endRecord: 0
+      //   }
+      // });
       this.getChecked();
-      this.playerList =  this.peopleList.filter((item) => {
-        return item.hasChecked;
-      }).map((item) => {
-        return {
-          ...item,
-          startRecord: 4000,
-          addRecord: 0,
-          endRecord: 0
-        }
-      });
       this.$refs.popup.close();
     },
     popChange(e) {
       var _this = this;
       if (e.show == false) {
-        _this.peopleList.forEach((item,index) => {
+        _this.peopleList.forEach((item, index) => {
           if (_this.checkId.indexOf(index) === -1) {
             _this.$set(_this.peopleList[index], 'hasChecked', false)
           } else {

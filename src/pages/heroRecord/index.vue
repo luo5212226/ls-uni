@@ -6,9 +6,9 @@
       <movable-area v-else style="height: 100%;width:560rpx;">
         <movable-view direction="vertical" style="width: 560rpx;height:auto;">
           <view class="peopleBox">
-            <view v-for="(item, index) in heroList" :key="(+new Date()) + index" class="people">
+            <view v-for="(item, index) in heroList" :key="index" class="people">
               <view class="close" @tap="deleteFn(item, index)"><my-svg type="delete" class="close-svg"></my-svg></view>
-              <my-svg :type="'people'+(index+1)" class="addPeople"></my-svg>
+              <my-svg :type="`people${index+1}`" class="addPeople"></my-svg>
               <text class="name">{{item.name}}</text>
             </view>
           </view>
